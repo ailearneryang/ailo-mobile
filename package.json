@@ -29,7 +29,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "relay": "node relay/server.cjs",
-    "test:connection": "node --test relay/server.test.cjs relay/connect.test.cjs relay/live-data.test.cjs relay/connect-cloud.test.cjs",
+    "test:connection": "node --test relay/server.test.cjs relay/connect.test.cjs relay/live-data.test.cjs relay/connect-cloud.test.cjs relay/attachments.test.cjs scripts/submission.test.cjs",
     "connect": "node relay/connect.cjs",
     "connect:cloud": "node relay/connect-cloud.cjs",
     "pair:cloud": "node relay/pair-cloud.cjs",

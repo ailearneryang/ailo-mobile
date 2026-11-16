@@ -18,6 +18,7 @@ install -m 0755 "$node_bin" /opt/ailo-relay/bin/node.new
 mv /opt/ailo-relay/bin/node.new /opt/ailo-relay/bin/node
 if [ -f /opt/ailo-relay/server.cjs ]; then cp -p /opt/ailo-relay/server.cjs "/opt/ailo-relay/server.cjs.backup-$(date +%Y%m%d%H%M%S)"; fi
 install -m 0644 "$bundle_dir/server.cjs" /opt/ailo-relay/server.cjs
+install -m 0644 "$bundle_dir/payload.cjs" /opt/ailo-relay/payload.cjs
 if [ ! -f /etc/ailo-relay/relay.env ]; then
  umask 077
  /opt/ailo-relay/bin/node -e 'const fs=require("fs"),crypto=require("crypto");fs.writeFileSync("/etc/ailo-relay/relay.env","AILO_RELAY_BOOTSTRAP="+crypto.randomBytes(32).toString("hex")+"\n",{mode:0o600,flag:"wx"})'

@@ -1,0 +1,20 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {createRelay}=require('./server.cjs');const {createBridge,desktopAdapter}=require('../../ailo/apps/desktop/mobile-bridge.cjs');
+async function fixture(t){const directory=await fs.mkdtemp(path.join(os.tmpdir(),'ailo-upload-'));t.after(()=>fs.rm(directory,{recursive:true,force:true}));let now=100000;const bootstrap='fixture-bootstrap-'.repeat(4),relay=await createRelay({directory,bootstrap,now:()=>now});await new Promise(r=>relay.server.listen(0,'127.0.0.1',r));t.after(()=>relay.close());const url='http://127.0.0.1:'+relay.server.address().port;const api=async(route,key,body)=>{const r=await fetch(url+route,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});return {status:r.status,body:await r.json()};};const key=(await api('/v1/register',bootstrap,{})).body.desktopToken,code=(await api('/v1/pair-code',key,{})).body.code,phone=(await api('/v1/pair','',{code})).body.phoneToken;return {directory,url,key,phone,api,advance:n=>now+=n};}
+const capabilities={protocolVersion:2,attachmentReceiptVersion:1,extensions:[],connections:[]};
+const attachment={name:'fixture.txt',base64:Buffer.from('CONFIDENTIAL_FIXTURE_ONLY').toString('base64')};
+test('upload is private, retries immutable, desktop receipt deletes relay bytes, and dispatch executes once',async t=>{
+ const f=await fixture(t);await f.api('/v1/sync',f.key,{capabilities});const body={version:2,id:'attachment-job-001',text:'fixture',attachments:[attachment],tools:{searchEnabled:false,extensionIds:[]}};
+ assert.equal((await f.api('/v1/jobs',f.phone,body)).status,200);const file=path.join(f.directory,'attachments',body.id+'.json');assert.match(await fs.readFile(file,'utf8'),/base64/);assert.doesNotMatch(await fs.readFile(path.join(f.directory,'state.json'),'utf8'),/CONFIDENTIAL_FIXTURE_ONLY|Q09ORklERU5USUFM/);
+ assert.doesNotMatch(JSON.stringify((await f.api('/v1/status',f.phone)).body),/base64/);
+ assert.equal((await f.api('/v1/jobs',f.phone,{...body,attachments:[{...attachment,base64:Buffer.from('changed').toString('base64')}]})).status,409);
+ assert.equal((await f.api('/v1/sync',f.phone,{receivedAttachments:[body.id]})).status,404);await fs.access(file);
+ const desktop=path.join(f.directory,'desktop');let calls=0;const bridge=await createBridge({directory:desktop,url:f.url,key:f.key,capabilities:async()=>capabilities,execute:async job=>{calls++;await assert.rejects(fs.access(file));assert.equal(job.attachments[0].base64,attachment.base64);return {status:'completed',result:'fixture complete'};}});await bridge.tick();bridge.stop();assert.equal(calls,1);
+ assert.equal((await f.api('/v1/jobs',f.phone,body)).status,200);await bridge.tick();assert.equal(calls,1);await assert.rejects(fs.access(file));
+});
+test('24-hour expiry deletes files and never dispatches a task with missing attachments',async t=>{
+ const f=await fixture(t);await f.api('/v1/sync',f.key,{capabilities});const body={version:2,id:'attachment-expiry-001',text:'fixture',attachments:[attachment]};await f.api('/v1/jobs',f.phone,body);f.advance(86400001);const snapshot=(await f.api('/v1/status',f.phone)).body;assert.equal(snapshot.jobs[0].status,'failed');assert.match(snapshot.jobs[0].detail,/24小时/);await assert.rejects(fs.access(path.join(f.directory,'attachments',body.id+'.json')));assert.equal((await f.api('/v1/sync',f.key,{capabilities})).body.jobs.length,0);
+});
+test('outdated desktops cannot receive attachments or tools jobs',async t=>{
+ const f=await fixture(t);assert.equal((await f.api('/v1/jobs',f.phone,{id:'old-version-001',text:'fixture',attachments:[attachment]})).status,409);await f.api('/v1/sync',f.key,{capabilities});await f.api('/v1/jobs',f.phone,{id:'old-version-001',text:'fixture',attachments:[attachment]});assert.equal((await f.api('/v1/sync',f.key,{})).body.jobs.length,0);
+});
