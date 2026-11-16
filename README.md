@@ -9,7 +9,7 @@
 - Markdown 标题、重点、列表、表格、引用及代码块排版。
 - 电脑心跳有效期、手机断网与前后台恢复时的状态检查。
 - iPhone 本机语音转文字；停止后保留草稿，不自动发送。
-- Ailo 图标、陪伴宠物，以及相机/照片/文件的本地选择和预览。
+- Ailo 图标、陪伴宠物，以及相机/照片/文件的本地选择和预览；相机与相册照片自动按剩余附件额度缩图压缩，原图不变。
 
 附件与工具、技能选择现已接通版本2协议，需要同时更新手机、中转服务和电脑桥接。仅点击发送后上传所选附件；电脑持久接收并校验后删除云端副本，未接收的附件约24小时后清除。每次最多3个、每个2MB、合计3MB。系统推送、多电脑调度及远程权限确认未接入。
 
@@ -45,6 +45,7 @@ npm run ios:test
 ```sh
 npm run typecheck
 npm run test:markdown
+npm run test:photos
 npm run test:ios-config
 node --test scripts/speech-native-guard.test.cjs
 npm run test:connection

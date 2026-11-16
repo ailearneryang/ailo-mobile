@@ -7,6 +7,7 @@
     "expo-camera": "~58.0.14",
     "expo-document-picker": "~58.0.5",
     "expo-file-system": "~58.0.13",
+    "expo-image-manipulator": "~58.0.16",
     "expo-image-picker": "~58.0.10",
     "expo-secure-store": "~58.0.3",
     "expo-speech-recognition": "^58.0.1",
@@ -29,7 +30,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "relay": "node relay/server.cjs",
-    "test:connection": "node --test relay/server.test.cjs relay/connect.test.cjs relay/live-data.test.cjs relay/connect-cloud.test.cjs relay/attachments.test.cjs scripts/submission.test.cjs",
+    "test:connection": "node --test relay/server.test.cjs relay/connect.test.cjs relay/live-data.test.cjs relay/connect-cloud.test.cjs relay/attachments.test.cjs scripts/submission.test.cjs scripts/relay-client.test.cjs",
     "connect": "node relay/connect.cjs",
     "connect:cloud": "node relay/connect-cloud.cjs",
     "pair:cloud": "node relay/pair-cloud.cjs",
@@ -38,7 +39,8 @@
     "ios:simulator": "node scripts/ios-test.cjs --simulator",
     "test:ios-config": "node --test scripts/ios-bundle-output.test.cjs scripts/ios-standalone.test.cjs",
     "test:markdown": "node --test scripts/markdown.test.cjs",
-    "postinstall": "node scripts/speech-native-guard.cjs"
+    "postinstall": "node scripts/speech-native-guard.cjs",
+    "test:photos": "node --test scripts/photo-policy.test.cjs"
   },
   "private": true,
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"

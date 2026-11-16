@@ -18,3 +18,20 @@ test('24-hour expiry deletes files and never dispatches a task with missing atta
 test('outdated desktops cannot receive attachments or tools jobs',async t=>{
  const f=await fixture(t);assert.equal((await f.api('/v1/jobs',f.phone,{id:'old-version-001',text:'fixture',attachments:[attachment]})).status,409);await f.api('/v1/sync',f.key,{capabilities});await f.api('/v1/jobs',f.phone,{id:'old-version-001',text:'fixture',attachments:[attachment]});assert.equal((await f.api('/v1/sync',f.key,{})).body.jobs.length,0);
 });
+test('heartbeats and receipt updates never carry a pending photo; unchanged history is not resent',async t=>{
+ const f=await fixture(t),history=[{id:'fixture-conversation',title:'fixture',messages:[]}];const first=(await f.api('/v1/sync',f.key,{capabilities,pullJobs:false,history})).body;assert.equal(first.jobs.length,0);assert.match(first.historyRevision,/^[a-f0-9]{64}$/);
+ const request={version:2,id:'single-photo-pull-001',text:'fixture',attachments:[attachment]};await f.api('/v1/jobs',f.phone,request);
+ for(let i=0;i<3;i++){const response=(await f.api('/v1/sync',f.key,{capabilities,pullJobs:false})).body;assert.deepEqual(response.jobs,[]);assert.doesNotMatch(JSON.stringify(response),/base64/);}
+ const unchanged=(await f.api('/v1/status?historyRevision='+first.historyRevision,f.phone)).body;assert.equal(unchanged.historyUnchanged,true);assert.equal(unchanged.history,undefined);
+ const receipt=(await f.api('/v1/jobs/'+request.id,f.phone)).body;assert.equal(receipt.id,request.id);assert.doesNotMatch(JSON.stringify(receipt),/base64|fixture-conversation/);
+ const pull=(await f.api('/v1/sync',f.key,{capabilities,pullJobs:true})).body;assert.equal(pull.jobs[0].attachments[0].base64,attachment.base64);
+ await f.api('/v1/sync',f.key,{capabilities,pullJobs:false,history:[...history,{id:'updated'}]});const changed=(await f.api('/v1/status?historyRevision='+first.historyRevision,f.phone)).body;assert.equal(changed.history.length,2);assert.notEqual(changed.historyRevision,first.historyRevision);
+});
+test('heartbeat and receipt updates never download pending photos; unchanged history is omitted and single receipt lookup is small',async t=>{
+ const f=await fixture(t);const history=[{id:'fixture',title:'fixture history',messages:[{role:'user',content:'fixture history content'}]}];let sync=await f.api('/v1/sync',f.key,{capabilities,pullJobs:false,history});assert.equal(sync.body.jobs.length,0);const revision=sync.body.historyRevision;assert.equal(typeof revision,'string');
+ const body={id:'selective-pull-001',text:'fixture',attachments:[attachment]};await f.api('/v1/jobs',f.phone,body);
+ for(let i=0;i<3;i++){sync=await f.api('/v1/sync',f.key,{capabilities,pullJobs:false});assert.equal(sync.body.jobs.length,0);assert.doesNotMatch(JSON.stringify(sync.body),/base64/);}
+ const status=(await f.api('/v1/status?historyRevision='+revision,f.phone)).body;assert.equal(status.historyUnchanged,true);assert.equal(status.history,undefined);assert.equal(status.jobs[0].status,'queued');assert.deepEqual((await f.api('/v1/status',f.phone)).body.history,history);
+ const receipt=(await f.api('/v1/jobs/'+body.id,f.phone)).body;assert.equal(receipt.id,body.id);assert.equal(receipt.status,'queued');assert.doesNotMatch(JSON.stringify(receipt),/base64|fixture history content/);
+ const delivery=(await f.api('/v1/sync',f.key,{capabilities,pullJobs:true})).body;assert.equal(delivery.jobs[0].attachments[0].base64,attachment.base64);
+});
