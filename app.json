@@ -7,7 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ailearneryang.ailo.mobile",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,6 +22,34 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "./plugins/with-bundle-output.cjs",
+      "./plugins/with-standalone-ios.cjs",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Ailo在你选择拍照或扫一扫时使用相机。",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Ailo在你选择拍照或扫一扫时使用相机。",
+          "photosPermission": "Ailo仅访问你主动选择并添加到消息的照片。",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Ailo仅在你点击语音输入时使用麦克风，将讲话转为输入框文字。",
+          "speechRecognitionPermission": "Ailo使用本机语音识别将讲话转成文字，不自动发送消息。"
+        }
+      ]
+    ]
   }
 }

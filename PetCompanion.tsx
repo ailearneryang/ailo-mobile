@@ -1,0 +1,11 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {Animated,AccessibilityInfo,AppState,Pressable,Text,View,StyleSheet} from 'react-native';
+type State='idle'|'working'|'completed'|'attention'|'offline';
+const words:Record<State,string>={idle:'我在呢，随时陪你开始。',working:'正在等电脑完成这项任务。',completed:'结果到了，一起看看吧。',attention:'遇到了一点问题，看看任务说明吧。',offline:'电脑暂时离线，我陪你等它回来。'};
+export default function PetCompanion({state='idle',compact=false}:{state?:State;compact?:boolean}){
+ const offset=useRef(new Animated.Value(0)).current,[reduced,setReduced]=useState(true),[active,setActive]=useState(AppState.currentState==='active'),[pat,setPat]=useState(false),timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ useEffect(()=>{void AccessibilityInfo.isReduceMotionEnabled().then(setReduced);const a=AccessibilityInfo.addEventListener('reduceMotionChanged',setReduced),b=AppState.addEventListener('change',s=>setActive(s==='active'));return()=>{a.remove();b.remove();if(timer.current)clearTimeout(timer.current);};},[]);
+ useEffect(()=>{offset.setValue(0);if(reduced||!active)return;const motion=Animated.loop(Animated.sequence([Animated.timing(offset,{toValue:-4,duration:state==='working'?650:1400,useNativeDriver:true}),Animated.timing(offset,{toValue:0,duration:state==='working'?650:1400,useNativeDriver:true})]));motion.start();return()=>motion.stop();},[state,reduced,active]);
+ return <View style={[s.root,compact&&s.compact]}><Pressable accessibilityRole="button" accessibilityLabel="摸摸Ailo宠物" onPress={()=>{setPat(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setPat(false),1800);}}><Animated.Image source={require('./assets/pet/companion.png')} style={{width:compact?44:116,height:compact?42:110,transform:[{translateY:offset},{scale:pat?1.06:1}]}} resizeMode="contain"/></Pressable><Text accessibilityLiveRegion="polite" style={[s.words,!compact&&{textAlign:'center'}]}>{pat?'汪！我在这里陪你。':words[state]}</Text></View>;
+}
+const s=StyleSheet.create({root:{alignItems:'center',justifyContent:'center',gap:8,paddingTop:24},compact:{flexDirection:'row',justifyContent:'flex-start',paddingTop:0,paddingBottom:6,paddingHorizontal:6,gap:10},words:{fontSize:11,color:'#8a8a8a',lineHeight:18}});

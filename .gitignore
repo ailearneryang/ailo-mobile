@@ -39,3 +39,14 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Private bridge state and credentials
+.local/
+.env
+
+# Local configuration, exports and signing material
+.env.*
+!.env.example
+*.ipa
+*.xcarchive/
+*.tar.gz

@@ -1,0 +1,4 @@
+# Replace the hostname; run Caddy on the host as an HTTPS reverse proxy.
+ailo.example.com {
+    reverse_proxy 127.0.0.1:8787
+}

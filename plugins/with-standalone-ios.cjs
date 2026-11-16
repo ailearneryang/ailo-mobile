@@ -1,0 +1,3 @@
+const {withDangerousMod}=require('expo/config-plugins'),fs=require('node:fs/promises'),path=require('node:path');
+function standaloneScheme(xml){if(!/<LaunchAction\b/.test(xml))throw Error('缺少Xcode Run配置');return xml.replace(/(<LaunchAction\b[^>]*?buildConfiguration\s*=\s*")[^"]+("[^>]*>)/s,'$1Release$2');}
+module.exports=config=>withDangerousMod(config,['ios',async c=>{const name=c.modRequest.projectName||'Ailo',file=path.join(c.modRequest.platformProjectRoot,name+'.xcodeproj','xcshareddata','xcschemes',name+'.xcscheme');await fs.writeFile(file,standaloneScheme(await fs.readFile(file,'utf8')));return c;}]);module.exports.standaloneScheme=standaloneScheme;

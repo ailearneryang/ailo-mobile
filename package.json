@@ -4,20 +4,42 @@
   "main": "index.ts",
   "dependencies": {
     "expo": "~58.0.25",
+    "expo-camera": "~58.0.14",
+    "expo-document-picker": "~58.0.5",
+    "expo-file-system": "~58.0.13",
+    "expo-image-picker": "~58.0.10",
+    "expo-secure-store": "~58.0.3",
+    "expo-speech-recognition": "^58.0.1",
     "expo-status-bar": "~58.0.5",
+    "markdown-it": "^15.0.3",
     "react": "19.3.0",
-    "react-native": "0.88.1"
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-web": "^0.21.4"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.2.0",
     "@types/react": "~19.3.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "relay": "node relay/server.cjs",
+    "test:connection": "node --test relay/server.test.cjs relay/connect.test.cjs relay/live-data.test.cjs relay/connect-cloud.test.cjs",
+    "connect": "node relay/connect.cjs",
+    "connect:cloud": "node relay/connect-cloud.cjs",
+    "pair:cloud": "node relay/pair-cloud.cjs",
+    "ios:test": "node scripts/ios-test.cjs",
+    "ios:check": "node scripts/ios-test.cjs --check",
+    "ios:simulator": "node scripts/ios-test.cjs --simulator",
+    "test:ios-config": "node --test scripts/ios-bundle-output.test.cjs scripts/ios-standalone.test.cjs",
+    "test:markdown": "node --test scripts/markdown.test.cjs",
+    "postinstall": "node scripts/speech-native-guard.cjs"
   },
-  "private": true
+  "private": true,
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
