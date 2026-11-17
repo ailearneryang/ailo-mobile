@@ -20,3 +20,5 @@ export function desktopConnection(data:Snapshot|null,receivedAt:number,now:numbe
  const lease=typeof data.onlineForMs==='number'?Math.min(15000,Math.max(0,data.onlineForMs)):15000;
  return now-receivedAt<lease?'online':'unknown';
 }
+export function mobileSource(conversation?:Conversation){const last=conversation?.messages.slice().reverse().find(m=>m.role==='user');return !!last?.id?.startsWith('mobile-input-');}
+export function jobMobileSource(data:Snapshot|null,job:Job){const conversation=data?.history.find(c=>c.id===job.taskId);return conversation?.messages.some(m=>m.role==='user')?mobileSource(conversation):true;}

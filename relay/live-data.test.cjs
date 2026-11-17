@@ -28,3 +28,6 @@ test('cached online presence expires, cloud failures are unknown and server leas
  assert.equal(desktopConnection({online:false},1000,2000,false),'offline');
  assert.equal(desktopConnection({online:true},1000,16000,false),'unknown');
 });
+test('source marker follows latest user interaction rather than the first mobile request',()=>{
+ const {mobileSource,jobMobileSource}=require('../live-data.ts');const c={id:'task',title:'fixture',messages:[{id:'mobile-input-fixture',role:'user',content:'phone'},{id:'reply',role:'assistant',content:'reply'}]};assert.equal(mobileSource(c),true);c.messages.push({id:'desktop-input',role:'user',content:'desktop'});assert.equal(mobileSource(c),false);assert.equal(jobMobileSource({history:[c]}, {taskId:'task'}),false);assert.equal(jobMobileSource(null,{}),true);
+});
